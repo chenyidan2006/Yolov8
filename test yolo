@@ -1,0 +1,17 @@
+import torch
+from ultralytics import YOLO
+
+class MyYOLOClass:
+    def __init__(self):
+        super().__init__()
+
+        # 加载 YOLO 模型
+        try:
+            self.model = YOLO('yolov8n.pt')  # 自动加载权重文件
+            print("YOLO 模型加载成功")
+        except Exception as e:
+            print(f"YOLO 模型加载失败: {e}")
+            self.model = None
+
+# 实例化类
+yolo_instance = MyYOLOClass()

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YOLO Object Detection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        .output {
+            margin-top: 20px;
+        }
+        img, video {
+            max-width: 100%;
+            height: auto;
+            margin-top: 10px;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>YOLO Object Detection</h1>
+
+        <!-- 图片检测 -->
+        <h2>图片检测</h2>
+        <form id="uploadForm">
+            <input type="file" name="file" accept="image/*" required>
+            <button type="submit">Upload and Detect</button>
+        </form>
+        <div class="output" id="imageOutput"></div>
+
+        <!-- 视频检测 -->
+        <h2>视频检测</h2>
+        <form id="videoForm">
+            <input type="file" name="file" accept="video/*" required>
+            <button type="submit">Upload Video</button>
+        </form>
+        <div class="output" id="videoOutput"></div>
+
+        <!-- 摄像头实时检测 -->
+        <h2>摄像头实时检测</h2>
+        <button id="startCamera">Start Camera</button>
+        <button id="stopCamera">Stop Camera</button>
+        <div class="output">
+            <img id="cameraFeed" src="" alt="Camera Feed">
+            <h4>Predictions:</h4>
+            <ul id="cameraPredictions"></ul>
+            <h4>Label Counts:</h4>
+            <ul id="cameraLabelCounts"></ul>
+        </div>
+    </div>
+
+    <script>
+        const uploadForm = document.getElementById('uploadForm');
+        const imageOutput = document.getElementById('imageOutput');
+        const videoForm = document.getElementById('videoForm');
+        const videoOutput = document.getElementById('videoOutput');
+        const startCamera = document.getElementById('startCamera');
+        const stopCamera = document.getElementById('stopCamera');
+        const cameraFeed = document.getElementById('cameraFeed');
+
+        // 图片检测
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(uploadForm);
+
+            imageOutput.innerHTML = 'Processing...';
+
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                imageOutput.innerHTML = `
+                    <h3>Detection Results</h3>
+                    <p>Processing Time: ${data.processing_time}</p>
+                    <h4>Original Image:</h4>
+                    <img src="${data.original_image}" alt="Original Image">
+                    <h4>Detected Image:</h4>
+                    <img src="${data.detected_image}" alt="Detected Image">
+                    <h4>Predictions:</h4>
+                    <ul>
+                        ${data.predictions.map(p => `<li>${p.label}: ${p.confidence.toFixed(2)}</li>`).join('')}
+                    </ul>
+                    <h4>Label Counts:</h4>
+                    <ul>
+                        ${Object.entries(data.label_counts).map(([label, count]) => `<li>${label}: ${count}</li>`).join('')}
+                    </ul>
+                `;
+            } else {
+                const error = await response.json();
+                imageOutput.innerHTML = `<p style="color: red;">Error: ${error.error}</p>`;
+            }
+        });
+
+        // 视频检测
+        videoForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(videoForm);
+
+            videoOutput.innerHTML = 'Uploading video...';
+
+            const response = await fetch('/video', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                videoOutput.innerHTML = `
+                    <h3>Uploaded Video</h3>
+                    <video controls>
+                        <source src="${data.video_path}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                `;
+            } else {
+                const error = await response.json();
+                videoOutput.innerHTML = `<p style="color: red;">Error: ${error.error}</p>`;
+            }
+        });
+
+        // 摄像头实时检测
+        startCamera.addEventListener('click', () => {
+            cameraFeed.src = '/camera_feed';
+        });
+
+        // 停止摄像头
+        stopCamera.addEventListener('click', async () => {
+            const response = await fetch('/stop_camera', { method: 'POST' });
+            if (response.ok) {
+                cameraFeed.src = '';
+                alert('Camera stopped successfully');
+            }
+        });
+    </script>
+</body>
+</html>
