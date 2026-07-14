@@ -1,3 +1,4 @@
+```mermaid
 graph TB
     Sub_Cam_RGB["摄像头与YOLOv5检测"]
     Sub_Cam_Depth["深度相机"]
@@ -19,3 +20,4 @@ graph TB
     Node_Velpub --> Node_Base
 
     Node_Velpub -.-> Node_DetectLine
+```
