@@ -35,4 +35,3 @@ graph TB
     style Node_Velpub fill:#85C1E9,stroke:#333,stroke-width:2px;
     style Node_Base fill:#F5B041,stroke:#333,stroke-width:2px;
 ```
-```
